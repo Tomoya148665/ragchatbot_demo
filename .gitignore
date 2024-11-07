@@ -2,3 +2,6 @@
 .env
 # PDFディレクトリ全体を無視
 pdf/
+
+#変換した画像ファイル
+ConvertedImages/
