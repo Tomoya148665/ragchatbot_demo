@@ -106,7 +106,7 @@ def process_pdf(pdf_path: str, output_filepath: str) -> None:
 
 # PDFファイルのパス、出力ファイルパスを定義
 pdf_path = './data/BSA071000 法定定期自主検査実施要領.pdf'
-output_filepath = './pdf_plumber_combined.md'
+output_filepath = '../MarkDowns/pdf_plumber_combined.md'
 
 # 処理を実行
 process_pdf(pdf_path, output_filepath)
