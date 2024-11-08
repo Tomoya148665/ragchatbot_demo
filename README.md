@@ -10,7 +10,10 @@
  conda install pip 
  //pipのインストール
  
-# MeCabのインストール
-pip install unidic-lite
+#requirementsをすっかり更新し忘れていたので、プルして足りてないlibあったら追記してもらえると助かります
+
+DBはDB\MDtoChroma.pyを実行すると構築されます。
+
+main.pyを実行するとアプリが動きます
 
 
