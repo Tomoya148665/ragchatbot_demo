@@ -1,5 +1,6 @@
 from operator import itemgetter
 from typing import Any, Dict, List
+import os
 
 import pdfplumber
 
@@ -104,9 +105,12 @@ def process_pdf(pdf_path: str, output_filepath: str) -> None:
     # すべての内容を1つのMarkdownファイルに保存
     save_to_single_markdown(output_filepath, all_pages_contents)
 
-# PDFファイルのパス、出力ファイルパスを定義
-pdf_path = './data/BSA071000 法定定期自主検査実施要領.pdf'
-output_filepath = '../MarkDowns/pdf_plumber_combined.md'
+# メインの実行部分
+if __name__ == "__main__":
+    # 絶対パスを使用
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    pdf_path = os.path.join(current_dir, "..", "data", "BSA120200 動力プレス機械安全基準：通則.pdf")
+    output_filepath = os.path.join(current_dir, "..", "MarkDowns", "PressMachine.md")
 
-# 処理を実行
-process_pdf(pdf_path, output_filepath)
+    # 処理を実行
+    process_pdf(pdf_path, output_filepath)

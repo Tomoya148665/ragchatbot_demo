@@ -1,15 +1,24 @@
-from docling.document_converter import DocumentConverter
+from src.pdf_plumber import process_pdf
+from src.PDFtoImages import PDFtoImages
+from src.GetPageNo import GetPageNo
+from src.RagClass import Rag
 
-source = "./pdf/Kensa.pdf"
+#pdfをマークダウン化
+process_pdf(pdf_path, output_filepath)
 
-def pdf_to_markdown(pdf_path: str) -> str:
-    converter = DocumentConverter()
-    result = converter.convert(pdf_path)
-    return result.document.export_to_markdown()
+#queryを取得
 
-def refference_part(markdown: str) -> str:
-    return markdown.split("## 参考文献")[0]
+#マークダウンをqueryに基づいてHybrid(もしくはベクトル)検索
 
-print(refference_part(pdf_to_markdown(source)))
+#Hybrid検索結果から該当ページを取得
+GetPageNo(Markdown,answer_text)
 
+#該当ページ前後の画像を取得(最終的にはページを指定)
+PDFtoImages(pdf_path, output_folder)
+
+#該当ページ前後の画像と付近のマークダウンでRAG検索  
+rag = Rag()
+rag.process(markdownPath, imagePath, pageNo, query)
+
+#RAG検索結果を出力
 
