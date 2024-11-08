@@ -3,7 +3,7 @@ from typing import List
 import os
 import re
 class MarkdownIndexer:
-    def __init__(self, db_path: str = "./chroma_db"):
+    def __init__(self, db_path: str= "./chroma_db"):#= chroma_dbのあるパスを指定.入力ファイル名によってパスを変更
         self.client = PersistentClient(path=db_path)
         
     def chunk_markdown(self, markdown_text: str, max_chunk_size: int = 3000) -> List[str]:
@@ -80,8 +80,38 @@ class MarkdownIndexer:
         except Exception as e:
             print(f"インデックス化エラー: {e}")
             return False
+        
+    def index_multiple_markdowns(self, file_mappings: dict):
+        print("インデックス化開始")
+
+        for file_path, collection_name in file_mappings.items():
+            #既存のコレクションがあれば削除
+            try:
+                self.client.delete_collection(collection_name)
+                print(f"既存のコレクション {collection_name} を削除しました")
+            except: pass
+
+            #新しくインデックス化
+            success = self.index_markdown(file_path, collection_name)
+            if success:
+                print(f"インデックス化完了: {file_path} → {collection_name}")
+                collection = self.client.get_collection(collection_name)
+                print(f"コレクション {collection_name} を取得しました")
+            else:
+                print(f"インデックス化失敗: {file_path} → {collection_name}")
+        print("インデックス化完了")
 
 # 使用例
 if __name__ == "__main__":
     indexer = MarkdownIndexer()
-    indexer.index_markdown("./MarkDowns/PressMachine.md", "press_collection")
+    file_mappings = {
+        "./MarkDowns/PressMachine.md": "PressMachine_collection",
+        "./MarkDowns/pdf_plumber_combined.md": "pdf_plumber_combined_collection"
+    }
+    indexer.index_multiple_markdowns(file_mappings)
+
+    # 利用可能なコレクションを取得
+    collections = indexer.client.list_collections()
+    print("\n利用可能なコレクション:")
+    for collection in collections:
+        print(collection.name)
