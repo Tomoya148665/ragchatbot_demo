@@ -1,9 +1,73 @@
 from chromadb import PersistentClient
 from typing import List, Dict
+import os
 
 class MarkdownSearcher:
-    def __init__(self, db_path: str = "./chroma_db"):
+    def __init__(self, db_path: str = "./chroma_db"): #= "./chroma_db"のあるパスを指定
         self.client = PersistentClient(path=db_path)
+        self.collections_mapping = {
+            "PressMachine": "press_collection",
+            "pdf_plumber_combined": "plumber_collection"
+        }
+
+    def get_markdown_file_name(self, pdf_name: str) -> str:
+        """
+        PDFファイル名からMarkdownファイル名を取得
+        
+        Args:
+            pdf_name (str): PDFファイル名
+            
+        Returns:
+            str: Markdownファイル名
+        """
+        # PDFファイル名とMarkdownファイル名のマッピング
+        pdf_to_markdown = {
+            "BSA071000 法定定期自主検査実施要領": "pdf_plumber_combined",
+            "BSA120200 動力プレス機械安全基準：通則": "PressMachine"
+        }
+        
+        # マッピングからMarkdownファイル名を取得
+        for pdf_pattern, markdown_name in pdf_to_markdown.items():
+            if pdf_pattern in pdf_name:
+                return f"./MarkDowns/{markdown_name}.md"
+        
+        raise ValueError(f"未対応のPDFファイルです: {pdf_name}\n"
+                        f"対応しているPDF: {list(pdf_to_markdown.keys())}")
+    
+    def get_collection_name(self, file_name: str) -> str:
+        # 拡張子とパスを除去してベースファイル名を取得
+        base_name = os.path.splitext(os.path.basename(file_name))[0]
+        collection_name = f"{base_name.lower()}_collection"
+        # コレクションが存在するか確認
+        available_collections = [c.name for c in self.client.list_collections()]
+        if collection_name not in available_collections:
+            raise ValueError(f"コレクションが見つかりません: {collection_name}\n"
+                           f"利用可能なコレクション: {available_collections}")
+        
+        return collection_name
+    
+    def search_by_file(self, file_name: str, query: str, n_results: int = 3,
+                      alpha: float = 0.5) -> List[Dict]:
+        """
+        ファイル名を指定して検索を実行
+        
+        Args:
+            file_name (str): 検索対象のファイル名
+            query (str): 検索クエリ
+            n_results (int): 返す結果の数
+            alpha (float): キーワード検索の重み
+            
+        Returns:
+            List[Dict]: 検索結果のリスト
+        """
+        try:
+            collection_name = self.get_collection_name(file_name)
+            print(f"検索対象コレクション: {collection_name}")
+            return self.search(collection_name, query, n_results, alpha)
+        except Exception as e:
+            print(f"検索エラー: {e}")
+            return []
+
     
     def search(self, collection_name: str, query: str, n_results: int = 3,
                alpha: float = 0.5) -> List[Dict]:
@@ -114,13 +178,16 @@ if __name__ == "__main__":
     # 利用可能なコレクションを表示
     collections = searcher.client.list_collections()
     print(f"利用可能なコレクション: {[c.name for c in collections]}")
+
+    file_name = "./MarkDowns/pdf_plumber_combined.md"
+    query = "性能検査を社内で行えない設備"
     
     # 検索実行
-    results = searcher.search(
-        "press_collection", 
-        "動力プレス機械の新設の届け出期日",
+    results = searcher.search_by_file(
+        file_name, 
+        query,
         n_results=3,
-        alpha=0.3  # セマンティック検索をより重視
+        alpha=0.1  # セマンティック検索をより重視
     )
     
     if results:
