@@ -1,3 +1,4 @@
+
 import fitz  # PyMuPDFライブラリのインポート
 import os
 
@@ -22,14 +23,14 @@ def convert_pdf_to_jpg(pdf_file, output_folder):
     for page_num in range(doc.page_count):
         page = doc.load_page(page_num)
         pix = page.get_pixmap()
-        output_path = os.path.join(output_folder, f'{pdf_name}_page_{page_num + 1:03}.jpg')
+        output_path = os.path.join(output_folder, f'{page_num + 1}.jpg')
         pix.save(output_path)
 
     print(f'Converted {pdf_file} to JPEG files.')
 
 if __name__ == "__main__":
     # 特定のPDFファイルのパス
-    pdf_file = r"./pdf/Press.pdf"  # ここにPDFファイルのパスを指定
+    pdf_file = r"data/BSA071000 法定定期自主検査実施要領.pdf"  # ここにPDFファイルのパスを指定
 
     # JPEGファイルを保存するフォルダのパス
     output_folder = r"./ConvertedImages"  # ここに出力フォルダのパスを指定
