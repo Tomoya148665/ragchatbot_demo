@@ -1,13 +1,11 @@
 import os
-from openai import OpenAI
+import openai
 import base64
 
 class Rag:
     def __init__(self):
         # OpenAI APIクライアントの初期化
-        self.client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY")  # 環境変数からAPIキーを取得
-        )
+        openai.api_key = os.getenv("OPENAI_API_KEY")  # 環境変数からAPIキーを取得
 
     def query_openai(self, markdown: str, images: list[str], query: str) -> str:
         """
@@ -25,35 +23,30 @@ class Rag:
             # メッセージコンテンツの作成
             messages_content = [
                 {
-                    "type": "text",
-                    "text": f"以下の文書と画像に基づいて質問に答えてください。\n\n文書：{markdown}\n\n質問：{query}"
+                    "role": "user",
+                    "content": f"以下の文書と画像に基づいて質問に答えてください。\n\n文書：{markdown}\n\n質問：{query}"
                 }
             ]
 
             # 画像をメッセージに追加
             for base64_image in images:
                 messages_content.append({
-                    "type": "image_url",
-                    "image_url": {
-                        "url": f"data:image/jpeg;base64,{base64_image}"
-                    }
+                    "role": "user",
+                    "content": f"データ画像:\n{base64_image}"
                 })
 
-            response = self.client.chat.completions.create(
-                model="gpt-4o",  # または必要なモデル
+            response = openai.ChatCompletion.create(
+                model="gpt-4o",  # または使用するモデル
                 messages=[
                     {
                         "role": "system",
                         "content": "あなたは与えられた文書と画像に基づいて質問に答えるアシスタントです。"
                     },
-                    {
-                        "role": "user",
-                        "content": messages_content
-                    }
+                    *messages_content
                 ],
                 max_tokens=500
             )
-            return response.choices[0].message.content
+            return response['choices'][0]['message']['content']
             
         except Exception as e:
             return f"エラーが発生しました: {str(e)}"

@@ -2,6 +2,13 @@ from chromadb import PersistentClient
 from typing import List
 import os
 import re
+import openai
+from dotenv import load_dotenv
+
+# 環境変数を読み込む
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 class MarkdownIndexer:
     def __init__(self, db_path: str= "./chroma_db"):#= chroma_dbのあるパスを指定.入力ファイル名によってパスを変更
         self.client = PersistentClient(path=db_path)
@@ -54,6 +61,22 @@ class MarkdownIndexer:
                 
         return chunks
     
+    def embed_text(self, text: str) -> List[float]:
+        """
+        OpenAIの`text-embedding-ada-002`モデルを使用してテキストをベクトル化
+        
+        Args:
+            text (str): ベクトル化するテキスト
+            
+        Returns:
+            List[float]: ベクトル化されたテキスト
+        """
+        response = openai.Embedding.create(
+            input=text,
+            model="text-embedding-ada-002"
+        )
+        return response['data'][0]['embedding']
+
     def index_markdown(self, markdown_path: str, collection_name: str):
         """
         Markdownファイルをインデックス化してChromaDBに保存
@@ -68,10 +91,14 @@ class MarkdownIndexer:
             
             # テキストのチャンク化
             chunks = self.chunk_markdown(markdown_text)
+            # チャンクをベクトル化
+            embeddings = [self.embed_text(chunk) for chunk in chunks]
+            
             
             # チャンクをDBに追加
             collection.add(
                 documents=chunks,
+                embeddings=embeddings,
                 ids=[f"chunk_{i}" for i in range(len(chunks))]
             )
             

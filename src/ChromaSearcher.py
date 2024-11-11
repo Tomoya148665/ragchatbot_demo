@@ -1,6 +1,13 @@
 from chromadb import PersistentClient
+from scipy.spatial.distance import cosine
 from typing import List, Dict
+import openai
 import os
+from dotenv import load_dotenv
+
+# 環境変数を読み込む
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class MarkdownSearcher:
     def __init__(self, db_path: str = "./chroma_db"): #= "./chroma_db"のあるパスを指定
@@ -36,38 +43,32 @@ class MarkdownSearcher:
     
     def get_collection_name(self, file_name: str) -> str:
         # 拡張子とパスを除去してベースファイル名を取得
-        base_name = os.path.splitext(os.path.basename(file_name))[0]
-        collection_name = f"{base_name.lower()}_collection"
-        # コレクションが存在するか確認
-        available_collections = [c.name for c in self.client.list_collections()]
-        if collection_name not in available_collections:
-            raise ValueError(f"コレクションが見つかりません: {collection_name}\n"
-                           f"利用可能なコレクション: {available_collections}")
+        collection_name_mapping = {
+            "./MarkDowns/pdf_plumber_combined.md": "pdf_plumber_combined_collection",
+            "./MarkDowns/PressMachine.md": "PressMachine_collection",
+        }
+        if file_name in collection_name_mapping:
+            return collection_name_mapping[file_name]
         
-        return collection_name
+        raise ValueError(f"ファイル名に対応するコレクションが見つかりません: {file_name}")
     
-    def search_by_file(self, file_name: str, query: str, n_results: int = 3,
-                      alpha: float = 0.5) -> List[Dict]:
+    def embed_query(self, query: str) -> List[float]:
         """
-        ファイル名を指定して検索を実行
+        OpenAIのtext-embedding-ada-002を使用してクエリをベクトル化
         
         Args:
-            file_name (str): 検索対象のファイル名
             query (str): 検索クエリ
-            n_results (int): 返す結果の数
-            alpha (float): キーワード検索の重み
             
         Returns:
-            List[Dict]: 検索結果のリスト
+            List[float]: ベクトル化されたクエリ
         """
-        try:
-            collection_name = self.get_collection_name(file_name)
-            print(f"検索対象コレクション: {collection_name}")
-            return self.search(collection_name, query, n_results, alpha)
-        except Exception as e:
-            print(f"検索エラー: {e}")
-            return []
-
+        response = openai.Embedding.create(
+            input=query,
+            model="text-embedding-ada-002"
+        )
+        return response['data'][0]['embedding']
+    
+    
     
     def search(self, collection_name: str, query: str, n_results: int = 3,
                alpha: float = 0.5) -> List[Dict]:
@@ -85,12 +86,15 @@ class MarkdownSearcher:
         """
         try:
             collection = self.client.get_collection(collection_name)
+
+            # クエリをtext-embedding-ada-002でベクトル化
+            query_vector = self.embed_query(query)
             
             # セマンティック検索の実行
             results = collection.query(
-                query_texts=[query],
+                query_embeddings=[query_vector],
                 n_results=n_results * 2,  # より多くの候補を取得
-                include=['documents', 'distances']
+                include=['documents', 'embeddings']
             )
             
             if not results['documents'][0]:
@@ -98,15 +102,16 @@ class MarkdownSearcher:
                 return []
                 
             merged_results = []
-            for i, (doc, distance) in enumerate(zip(results['documents'][0], results['distances'][0])):
+            for i, (doc, embedding) in enumerate(zip(results['documents'][0], results['embeddings'][0])):
+                # セマンティックスコアの計算
+                doc_vector = embedding
+                semantic_score = 1 - cosine(query_vector, doc_vector)
+
                 # キーワードスコアの計算
                 keyword_score = self.calculate_keyword_score(doc, query)
-                
-                # セマンティックスコアの計算（距離を類似度に変換）
-                semantic_score = 1.0 - (distance / max(results['distances'][0]))
-                
-                # 最終スコアの計算
-                final_score = (keyword_score * alpha + semantic_score * (1-alpha))
+
+                # 総合スコアの計算
+                final_score = (keyword_score * alpha + semantic_score * (1 - alpha))
                 
                 merged_results.append({
                     'content': doc,
@@ -183,7 +188,7 @@ if __name__ == "__main__":
     query = "性能検査を社内で行えない設備"
     
     # 検索実行
-    results = searcher.search_by_file(
+    results = searcher.search(
         file_name, 
         query,
         n_results=3,
