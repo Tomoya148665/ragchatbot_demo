@@ -4,7 +4,7 @@
  conda create --name RagChatbot python=3.10.0
  // 仮想環境の作成
 
- codna activate RagChatbot
+ conda activate RagChatbot
  //仮想環境の起動
 
  conda install pip 
