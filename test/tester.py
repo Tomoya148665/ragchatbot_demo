@@ -46,7 +46,7 @@ def run_search_test(pdf_path, query):
         return "検索結果が見つかりませんでした。"
 
     # ページ番号取得
-    pageNo = GetPageNo(results[0]['content'])
+    pageNo = GetPageNo(file_name,results[0]['content'])
 
     # 画像変換
     convert_pdf_to_jpg(pdf_path, output_folder)
@@ -57,29 +57,50 @@ def run_search_test(pdf_path, query):
 
     return response
 
+def save_results_to_json(filename, results):
+    """結果をJSONファイルに保存する"""
+    output_dir = "./outputs"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    with open(os.path.join(output_dir, filename), 'w', encoding='utf-8') as f:
+        json.dump(results, f, ensure_ascii=False, indent=4)
+
 def test_legal_inspection():
     """法定定期自主検査実施要領のテスト"""
     test_cases = load_test_cases("test/法定定期自主検査実施要領.json")
     pdf_path = "data/BSA071000 法定定期自主検査実施要領.pdf"
+    results = []
 
     for case in test_cases:
         print(f"\nテストケース: {case['question']}")
         response = run_search_test(pdf_path, case['question'])
-        print(f"期待される回答: {case['answer']}")
-        print(f"実際の回答: {response}")
-        # 必要に応じて回答の評価を追加
+        # print(f"期待される回答: {case['answer']}")
+        # print(f"実際の回答: {response}")
+        results.append({
+            "テストケース": case['question'],
+            "期待される回答": case['answer'],
+            "実際の回答": response
+        })
+    
+    save_results_to_json("法定定期自主検査実施要領_results.json", results)
 
 def test_press_machine():
     """動力プレス機械安全基準のテスト"""
     test_cases = load_test_cases("test/動力プレス機械安全基準：通則.json")
     pdf_path = "data/BSA120200 動力プレス機械安全基準：通則.pdf"
+    results = []
 
     for case in test_cases:
         print(f"\nテストケース: {case['question']}")
         response = run_search_test(pdf_path, case['question'])
-        print(f"期待される回答: {case['answer']}")
-        print(f"実際の回答: {response}")
-        # 必要に応じて回答の評価を追加
+        results.append({
+            "テストケース": case['question'],
+            "期待される回答": case['answer'],
+            "実際の回答": response
+        })
+    
+    save_results_to_json("動力プレス機械安全基準_results.json", results)
 
 if __name__ == "__main__":
     print("法定定期自主検査実施要領のテスト開始")
