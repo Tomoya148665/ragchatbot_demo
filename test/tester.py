@@ -31,35 +31,38 @@ def run_search_test(pdf_path, query):
 
     # 検索実行
     searcher = MarkdownSearcher()
-    file_name = searcher.get_markdown_file_name(pdf_name)
-    print(f"\n検索対象ファイル: {file_name}")
+    # PDFファイル名に基づいて適切なMarkdownファイルを選択
+    file_path = searcher.get_markdown_file_name(pdf_name)
+    print(f"検索対象ファイル: {file_path}")
     print(f"検索クエリ: {query}")
 
-    results = searcher.search_by_file(
-        file_name,
+    # コレクション名を取得
+    collection_name = searcher.get_collection_name(file_path)
+        
+    # 検索実行
+    results = searcher.search(
+        collection_name,
         query,
         n_results=3,
-        alpha=0.1
+        alpha=0.1  # セマンティック検索をより重視
     )
 
-    if not results:
-        return "検索結果が見つかりませんでした。"
 
     # ページ番号取得
-    pageNo = GetPageNo(file_name,results[0]['content'])
+    pageNo = GetPageNo(file_path,results[0]['content'])
 
     # 画像変換
     convert_pdf_to_jpg(pdf_path, output_folder)
 
     # RAG検索
     rag = Rag()
-    response = rag.process(file_name, output_folder, pageNo, query)
+    response = rag.process(file_path, output_folder, pageNo, query)
 
     return response
 
 def save_results_to_json(filename, results):
     """結果をJSONファイルに保存する"""
-    output_dir = "./outputs"
+    output_dir = "./test/outputs"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
