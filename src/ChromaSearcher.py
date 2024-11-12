@@ -66,7 +66,7 @@ class MarkdownSearcher:
             input=query,
             model="text-embedding-ada-002"
         )
-        return response['data'][0]['embedding']
+        return response.data[0].embedding
     
     
     
