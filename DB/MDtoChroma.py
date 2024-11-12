@@ -2,6 +2,13 @@ from chromadb import PersistentClient
 from typing import List
 import os
 import re
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# 環境変数を読み込む
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 class MarkdownIndexer:
     def __init__(self, db_path: str= "./chroma_db"):#= chroma_dbのあるパスを指定.入力ファイル名によってパスを変更
         self.client = PersistentClient(path=db_path)
@@ -54,6 +61,22 @@ class MarkdownIndexer:
                 
         return chunks
     
+    def embed_text(self, text: str) -> List[float]:
+        """
+        OpenAIの`text-embedding-ada-002`モデルを使用してテキストをベクトル化
+        
+        Args:
+            text (str): ベクトル化するテキスト
+            
+        Returns:
+            List[float]: ベクトル化されたテキスト
+        """
+        response = client.embeddings.create(
+            input=text,
+            model="text-embedding-ada-002"
+        )
+        return response.data[0].embedding
+
     def index_markdown(self, markdown_path: str, collection_name: str):
         """
         Markdownファイルをインデックス化してChromaDBに保存
@@ -61,20 +84,20 @@ class MarkdownIndexer:
         try:
             # コレクションの取得または作成
             collection = self.client.get_or_create_collection(collection_name)
-            
             # Markdownファイルの読み込み
             with open(markdown_path, 'r', encoding='utf-8') as file:
                 markdown_text = file.read()
-            
             # テキストのチャンク化
             chunks = self.chunk_markdown(markdown_text)
+            # チャンクをベクトル化
+            embeddings = [self.embed_text(chunk) for chunk in chunks]
             
             # チャンクをDBに追加
             collection.add(
                 documents=chunks,
+                embeddings=embeddings,
                 ids=[f"chunk_{i}" for i in range(len(chunks))]
             )
-            
             return True
             
         except Exception as e:
@@ -99,7 +122,6 @@ class MarkdownIndexer:
                 print(f"コレクション {collection_name} を取得しました")
             else:
                 print(f"インデックス化失敗: {file_path} → {collection_name}")
-        print("インデックス化完了")
 
 # 使用例
 if __name__ == "__main__":
