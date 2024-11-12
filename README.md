@@ -17,3 +17,6 @@ DBはDB\MDtoChroma.pyを実行すると構築されます。
 main.pyを実行するとアプリが動きます
 
 
+#UIの起動
+streamlit run a.py
+
