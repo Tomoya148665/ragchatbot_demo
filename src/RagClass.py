@@ -1,6 +1,9 @@
 import os
 from openai import OpenAI
 import base64
+import dotenv
+
+dotenv.load_dotenv()
 
 class Rag:
     def __init__(self):
