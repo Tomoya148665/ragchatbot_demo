@@ -30,13 +30,13 @@ query = "性能検査を社内で行えない設備"
 searcher = MarkdownSearcher()
 
 # PDFファイル名に基づいて適切なMarkdownファイルを選択
-file_name = searcher.get_markdown_file_name(pdf_name)
-print(f"検索対象ファイル: {file_name}")
+file_path = searcher.get_markdown_file_name(pdf_name)
+print(f"検索対象ファイル: {file_path}")
 
 # コレクション名を取得
-collection_name = searcher.get_collection_name(file_name)
+collection_name = searcher.get_collection_name(file_path)
     
-    # 検索実行
+# 検索実行
 results = searcher.search(
         collection_name,
         query,
@@ -45,14 +45,14 @@ results = searcher.search(
 )
 
 #Hybrid検索結果から該当ページを取得
-pageNo = GetPageNo(file_name,results[0]['content'])
+pageNo = GetPageNo(file_path,results[0]['content'])
 
 #該当ページ前後の画像を取得(最終的にはページを指定)
 convert_pdf_to_jpg(pdf_path, "./ConvertedImages")
 
 #該当ページ前後の画像と付近のマークダウンでRAG検索  
 rag = Rag()
-response = rag.process(file_name, "./ConvertedImages", pageNo, query)
+response = rag.process(file_path, "./ConvertedImages", pageNo, query)
 
 #RAG検索結果を出力
 print(response)
