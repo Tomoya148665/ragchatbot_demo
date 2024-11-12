@@ -75,27 +75,22 @@ class MarkdownIndexer:
             input=text,
             model="text-embedding-ada-002"
         )
-        return response['data'][0]['embedding']
+        return response.data[0].embedding
 
     def index_markdown(self, markdown_path: str, collection_name: str):
         """
         Markdownファイルをインデックス化してChromaDBに保存
         """
         try:
-            print('a')
             # コレクションの取得または作成
             collection = self.client.get_or_create_collection(collection_name)
-            print('b')            
             # Markdownファイルの読み込み
             with open(markdown_path, 'r', encoding='utf-8') as file:
                 markdown_text = file.read()
-            print('c')            
             # テキストのチャンク化
             chunks = self.chunk_markdown(markdown_text)
-            print('d')
             # チャンクをベクトル化
             embeddings = [self.embed_text(chunk) for chunk in chunks]
-            print('e')
             
             # チャンクをDBに追加
             collection.add(
@@ -103,7 +98,6 @@ class MarkdownIndexer:
                 embeddings=embeddings,
                 ids=[f"chunk_{i}" for i in range(len(chunks))]
             )
-            print('f')
             return True
             
         except Exception as e:
@@ -128,7 +122,6 @@ class MarkdownIndexer:
                 print(f"コレクション {collection_name} を取得しました")
             else:
                 print(f"インデックス化失敗: {file_path} → {collection_name}")
-        print("インデックス化完了")
 
 # 使用例
 if __name__ == "__main__":
