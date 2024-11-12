@@ -1,11 +1,10 @@
-def GetPageNo(file_path: str, answer_text: str) -> int:
+def GetPageNo(ansText: str) -> int:
     """
-    Markdownファイル内でテキストを検索し、該当するページ番号を返す
+    テキストからページ番号を抽出
     
     Args:
-        file_path (str): Markdownファイルのパス
-        answer_text (str): 検索したいテキスト
-    
+        text (str): ページのテキスト
+        
     Returns:
         int: 検索テキストが見つかったページ番号（見つからない場合は-1）
     """
@@ -19,7 +18,7 @@ def GetPageNo(file_path: str, answer_text: str) -> int:
     """
     
     # "# Page "で始まる行を探す
-    lines = answer_text.split('\n')
+    lines = ansText.split('\n')
     for line in lines:
         if line.startswith('# Page '):
             try:
