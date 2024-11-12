@@ -45,7 +45,7 @@ results = searcher.search(
 )
 
 #Hybrid検索結果から該当ページを取得
-pageNo = GetPageNo(file_path,results[0]['content'])
+pageNo = GetPageNo(results[0]['content'])
 
 #該当ページ前後の画像を取得(最終的にはページを指定)
 convert_pdf_to_jpg(pdf_path, "./ConvertedImages")

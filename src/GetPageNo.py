@@ -18,7 +18,7 @@ def GetPageNo(ansText: str) -> int:
     """
     
     # "# Page "で始まる行を探す
-    lines = answer_text.split('\n')
+    lines = ansText.split('\n')
     for line in lines:
         if line.startswith('# Page '):
             try:
