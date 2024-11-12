@@ -13,43 +13,44 @@ class Rag:
     def query_openai(self, markdown: str, images: List[str], query: str) -> str:
         """
         OpenAIのAPIを使用してクエリに対する回答を生成
-        
-        Args:
-            markdown (str): 入力テキスト
-            images (List[str]): base64エンコードされた画像のリスト
-            query (str): 質問テキスト
-            
-        Returns:
-            str: OpenAIからの応答
         """
         try:
-            # メッセージリストの作成
-            messages: List[ChatCompletionMessageParam] = [
-                ChatCompletionSystemMessageParam(
-                    role="system",
-                    content="あなたは与えられた文書と画像に基づいて質問に答えるアシスタントです。"
-                ),
-                ChatCompletionUserMessageParam(
-                    role="user",
-                    content=f"以下の文書と画像に基づいて質問に答えてください。\n\n文書：{markdown}\n\n質問：{query}"
-                )
+            # メッセージコンテンツの作成
+            messages_content = [
+                {
+                    "type": "text",
+                    "text": f"以下の文書と画像に基づいて質問に答えてください。\n\n文書：{markdown}\n\n質問：{query}"
+                }
             ]
 
             # 画像をメッセージに追加
             for base64_image in images:
-                messages.append(ChatCompletionUserMessageParam(
-                    role="user",
-                    content=f"データ画像:\n{base64_image}"
-                ))
+                messages_content.append({
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}"
+                    }
+                })
+
+            # メッセージの作成
+            messages = [
+                {
+                    "role": "system",
+                    "content": "あなたは与えられた文書と画像に基づいて質問に答えるアシスタントです。"
+                },
+                {
+                    "role": "user",
+                    "content": messages_content
+                }
+            ]
 
             response = client.chat.completions.create(
-                model="gpt-4",  # モデル名を修正
-                messages=messages,
-                max_tokens=500
+                model="gpt-4o",
+                messages=messages
             )
             
             return response.choices[0].message.content
-            
+        
         except Exception as e:
             return f"エラーが発生しました: {str(e)}"
 
