@@ -49,7 +49,7 @@ def run_search_test(pdf_path, query):
 
 
     # ページ番号取得
-    pageNo = GetPageNo(file_path,results[0]['content'])
+    pageNo = GetPageNo(results[0]['content'])
 
     # 画像変換
     convert_pdf_to_jpg(pdf_path, output_folder)
