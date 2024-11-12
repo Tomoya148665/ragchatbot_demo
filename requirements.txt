@@ -1,2 +1,5 @@
 pdfplumber==0.11.4
 pymupdf==1.24.13
+openai==1.54.3
+chromadb==0.5.18
+streamlit == 1.40.0
