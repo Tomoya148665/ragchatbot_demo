@@ -71,6 +71,14 @@ class Rag:
             # マークダウンファイルを読み込み
             with open(markdownPath, "r", encoding="utf-8") as f:
                 markdown = f.read()
+            # ページ番号が指定されている場合、そのページの内容のみを抽出
+            if pageNo is not None:
+                pages = markdown.split("# Page ")
+                for page in pages:
+                    if page.startswith(str(pageNo)):
+                        markdown = page
+                        print("切り分けられたマークダウン:", markdown)
+                        break
             
             # フォルダ内のJPGファイルをカウント
             jpg_count = len([f for f in os.listdir(imagePath) if f.endswith('.jpg')])
