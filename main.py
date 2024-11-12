@@ -25,7 +25,7 @@ pdf_name = pdf_path.split("/")[-1].split(".")[0]
 
 print(f"PDF名: {pdf_name}")
 #queryを取得(ここはstreamlitかなんかで実装)
-query = "性能検査を社内で行えない設備" 
+query = "エレベーターの使用再開時自主検査の検査項目を教えて" 
 #マークダウンをqueryに基づいてHybrid(もしくはベクトル)検索
 searcher = MarkdownSearcher()
 
@@ -45,7 +45,7 @@ results = searcher.search(
 )
 
 #Hybrid検索結果から該当ページを取得
-pageNo = GetPageNo(file_path,results[0]['content'])
+pageNo = GetPageNo(results[0]['content'])
 
 #該当ページ前後の画像を取得(最終的にはページを指定)
 convert_pdf_to_jpg(pdf_path, "./ConvertedImages")
