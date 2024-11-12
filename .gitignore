@@ -5,3 +5,10 @@ pdf/
 
 #変換した画像ファイル
 ConvertedImages/
+
+#cache
+.mypy_cache/
+src/_pycache_/
+
+#Chromadb
+.chroma_db/

@@ -25,7 +25,7 @@ pdf_name = pdf_path.split("/")[-1].split(".")[0]
 
 print(f"PDF名: {pdf_name}")
 #queryを取得(ここはstreamlitかなんかで実装)
-query = "性能検査を社内で行えない設備" 
+query = "エレベーターの使用再開時自主検査の検査項目を教えて" 
 #マークダウンをqueryに基づいてHybrid(もしくはベクトル)検索
 searcher = MarkdownSearcher()
 
