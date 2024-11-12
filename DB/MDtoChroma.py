@@ -2,12 +2,12 @@ from chromadb import PersistentClient
 from typing import List
 import os
 import re
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 
 # 環境変数を読み込む
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class MarkdownIndexer:
     def __init__(self, db_path: str= "./chroma_db"):#= chroma_dbのあるパスを指定.入力ファイル名によってパスを変更
@@ -71,7 +71,7 @@ class MarkdownIndexer:
         Returns:
             List[float]: ベクトル化されたテキスト
         """
-        response = openai.Embedding.create(
+        response = client.embeddings.create(
             input=text,
             model="text-embedding-ada-002"
         )
@@ -82,18 +82,20 @@ class MarkdownIndexer:
         Markdownファイルをインデックス化してChromaDBに保存
         """
         try:
+            print('a')
             # コレクションの取得または作成
             collection = self.client.get_or_create_collection(collection_name)
-            
+            print('b')            
             # Markdownファイルの読み込み
             with open(markdown_path, 'r', encoding='utf-8') as file:
                 markdown_text = file.read()
-            
+            print('c')            
             # テキストのチャンク化
             chunks = self.chunk_markdown(markdown_text)
+            print('d')
             # チャンクをベクトル化
             embeddings = [self.embed_text(chunk) for chunk in chunks]
-            
+            print('e')
             
             # チャンクをDBに追加
             collection.add(
@@ -101,7 +103,7 @@ class MarkdownIndexer:
                 embeddings=embeddings,
                 ids=[f"chunk_{i}" for i in range(len(chunks))]
             )
-            
+            print('f')
             return True
             
         except Exception as e:

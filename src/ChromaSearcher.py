@@ -1,13 +1,13 @@
 from chromadb import PersistentClient
 from scipy.spatial.distance import cosine
 from typing import List, Dict
-import openai
+from openai import OpenAI
 import os
 from dotenv import load_dotenv
 
 # 環境変数を読み込む
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class MarkdownSearcher:
     def __init__(self, db_path: str = "./chroma_db"): #= "./chroma_db"のあるパスを指定
@@ -62,7 +62,7 @@ class MarkdownSearcher:
         Returns:
             List[float]: ベクトル化されたクエリ
         """
-        response = openai.Embedding.create(
+        response = client.embeddings.create(
             input=query,
             model="text-embedding-ada-002"
         )
