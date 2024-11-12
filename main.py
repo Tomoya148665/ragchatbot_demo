@@ -23,32 +23,36 @@ pdf_path = "data/BSA071000 法定定期自主検査実施要領.pdf"
 #pdfの名前を抽出(できているのかは不明。時間あるときに確認)
 pdf_name = pdf_path.split("/")[-1].split(".")[0]
 
+print(f"PDF名: {pdf_name}")
 #queryを取得(ここはstreamlitかなんかで実装)
 query = "性能検査を社内で行えない設備" 
 #マークダウンをqueryに基づいてHybrid(もしくはベクトル)検索
 searcher = MarkdownSearcher()
+
 # PDFファイル名に基づいて適切なMarkdownファイルを選択
-file_name = searcher.get_markdown_file_name(pdf_name)
-print(f"検索対象ファイル: {file_name}")
+file_path = searcher.get_markdown_file_name(pdf_name)
+print(f"検索対象ファイル: {file_path}")
+
+# コレクション名を取得
+collection_name = searcher.get_collection_name(file_path)
     
-    # 検索実行
-results = searcher.search_by_file(
-        file_name,
+# 検索実行
+results = searcher.search(
+        collection_name,
         query,
         n_results=3,
         alpha=0.1  # セマンティック検索をより重視
 )
 
 #Hybrid検索結果から該当ページを取得
-pageNo = GetPageNo(results[0]['content'])
-print(f"該当ページ: {pageNo}")
+pageNo = GetPageNo(file_path,results[0]['content'])
 
 #該当ページ前後の画像を取得(最終的にはページを指定)
 convert_pdf_to_jpg(pdf_path, "./ConvertedImages")
 
 #該当ページ前後の画像と付近のマークダウンでRAG検索  
 rag = Rag()
-response = rag.process(file_name, "./ConvertedImages", pageNo, query)
+response = rag.process(file_path, "./ConvertedImages", pageNo, query)
 
 #RAG検索結果を出力
 print(response)

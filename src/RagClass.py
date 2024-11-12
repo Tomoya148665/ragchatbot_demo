@@ -1,25 +1,18 @@
 import os
-from openai import OpenAI
 import base64
+from dotenv import load_dotenv
+from openai import OpenAI
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
+from typing import List
+
+# 環境変数を読み込む
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class Rag:
-    def __init__(self):
-        # OpenAI APIクライアントの初期化
-        self.client = OpenAI(
-            api_key=os.getenv("OPENAI_API_KEY")  # 環境変数からAPIキーを取得
-        )
-
-    def query_openai(self, markdown: str, images: list[str], query: str) -> str:
+    def query_openai(self, markdown: str, images: List[str], query: str) -> str:
         """
         OpenAIのAPIを使用してクエリに対する回答を生成
-        
-        Args:
-            markdown (str): 入力テキスト
-            images (list[str]): base64エンコードされた画像のリスト
-            query (str): 質問テキスト
-            
-        Returns:
-            str: OpenAIからの応答
         """
         try:
             # メッセージコンテンツの作成
@@ -39,22 +32,25 @@ class Rag:
                     }
                 })
 
-            response = self.client.chat.completions.create(
-                model="gpt-4o",  # または必要なモデル
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "あなたは与えられた文書と画像に基づいて質問に答えるアシスタントです。"
-                    },
-                    {
-                        "role": "user",
-                        "content": messages_content
-                    }
-                ],
-                max_tokens=500
+            # メッセージの作成
+            messages = [
+                {
+                    "role": "system",
+                    "content": "あなたは与えられた文書と画像に基づいて質問に答えるアシスタントです。"
+                },
+                {
+                    "role": "user",
+                    "content": messages_content
+                }
+            ]
+
+            response = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages
             )
-            return response.choices[0].message.content
             
+            return response.choices[0].message.content
+        
         except Exception as e:
             return f"エラーが発生しました: {str(e)}"
 
@@ -65,37 +61,39 @@ class Rag:
         Args:
             markdownPath (str): マークダウンファイルのパス
             imagePath (str): 画像フォルダのパス
+            pageNo (int): ページ番号
             query (str): 質問テキスト
             
         Returns:
             str: OpenAIからの応答
         """
-        # マークダウンファイルを読み込み
-        markdown = open(markdownPath, "r", encoding="utf-8").read()
-        
-        # フォルダ内のJPGファイルをカウント
-        jpg_count = len([f for f in os.listdir(imagePath) if f.endswith('.jpg')])
-        images = []
+        try:
+            # マークダウンファイルを読み込み
+            with open(markdownPath, "r", encoding="utf-8") as f:
+                markdown = f.read()
+            # ページ番号が指定されている場合、そのページの内容のみを抽出
+            if pageNo is not None:
+                pages = markdown.split("# Page ")
+                for page in pages:
+                    if page.startswith(str(pageNo)):
+                        markdown = page
+                        print("切り分けられたマークダウン:", markdown)
+                        break
+            
+            # フォルダ内のJPGファイルをカウント
+            jpg_count = len([f for f in os.listdir(imagePath) if f.endswith('.jpg')])
+            images = []
 
-        for i in range(jpg_count):
-            # 画像を読み込んでbase64エンコード
-            if i+1 == pageNo:
-                with open(os.path.join(imagePath, f"{i+1}.jpg"), "rb") as image_file:
-                    base64_image = base64.b64encode(image_file.read()).decode('utf-8')
-                    images.append(base64_image)
+            # 指定されたページの画像を読み込み
+            if 1 <= pageNo <= jpg_count:
+                image_path = os.path.join(imagePath, f"{pageNo}.jpg")
+                if os.path.exists(image_path):
+                    with open(image_path, "rb") as image_file:
+                        base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+                        images.append(base64_image)
         
-        # OpenAIに質問を投げる
-        response = self.query_openai(markdown, images, query)
-        
-        return response
-
-# 使用例:
-"""
-rag = Rag()
-response = rag.process(
-    markdownPath="path/to/markdown.md",
-    imagePath="path/to/images",
-    query="あなたの質問"
-)
-print(response)
-"""
+            # OpenAIに質問を投げる
+            return self.query_openai(markdown, images, query)
+            
+        except Exception as e:
+            return f"処理中にエラーが発生しました: {str(e)}"

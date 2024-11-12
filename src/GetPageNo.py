@@ -6,15 +6,27 @@ def GetPageNo(ansText: str) -> int:
         text (str): ページのテキスト
         
     Returns:
-        int: 抽出したページ番号
+        int: 検索テキストが見つかったページ番号（見つからない場合は-1）
     """
-    # "# Page " で始まる行からページ番号を抽出
-    if ansText.startswith("# Page "):
-        try:
-            # "# Page " の後の数字を取得
-            page_num = int(ansText.split("# Page ")[1].split("\n")[0])
-            print(page_num)
-            return page_num
-        except:
-            return -1
-    return -1
+    """
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            content = file.read()
+    except FileNotFoundError:
+        print(f"ファイルが見つかりません: {file_path}")
+        return -1
+    """
+    
+    # "# Page "で始まる行を探す
+    lines = answer_text.split('\n')
+    for line in lines:
+        if line.startswith('# Page '):
+            try:
+                # "# Page "の後の数字を抽出して整数に変換
+                page_no = int(line.replace('# Page ', '').strip())
+                print(f"ページ番号: {page_no}")
+                return page_no
+            except ValueError:
+                continue
+    
+    return page_no
