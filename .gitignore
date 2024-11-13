@@ -11,4 +11,4 @@ ConvertedImages/
 src/_pycache_/
 
 #Chromadb
-.chroma_db/
+chroma_db/
