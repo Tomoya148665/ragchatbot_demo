@@ -11,27 +11,29 @@ def test_search_and_page():
     # PDFファイル名に基づいて適切なMarkdownファイルを選択
     file_name = searcher.get_markdown_file_name(pdf_name)
     print(f"\n検索対象ファイル: {file_name}")
+    collection_name = 'pdf_plumber_combined_collection'
     
     # 検索実行
-    results = searcher.search_by_file(
-        file_name,
-        query,
-        n_results=3,
-        alpha=0.1
+    results = searcher.search(
+        collection_name, #ここでコレクションを直接指定
+        query
     )
     
     # 検索結果の確認
     if results:
-        print("\n検索結果の内容:")
-        print("=" * 50)
-        print(results[0]['content'])
-        print("=" * 50)
-        
-        # content内のページ番号を確認
-        content_lines = results[0]['content'].split('\n')
-        print("\n最初の数行:")
-        for line in content_lines[:5]:
-            print(f"行: {repr(line)}")
+        for result in results:
+            print("\n検索結果の内容:")
+            print("=" * 50)
+            print("semantic_score:", result['semantic_score'])
+            print("keyword_score:", result['keyword_score'])
+            print("score:", result['score'])
+            print("=" * 50)
+            
+            # content内のページ番号を確認
+            content_lines = result['content'].split('\n')
+            print("\n最初の数行:")
+            for line in content_lines[:5]:
+                print(f"行: {repr(line)}")
     else:
         print("検索結果が見つかりませんでした")
 
