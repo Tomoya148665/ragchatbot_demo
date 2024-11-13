@@ -4,6 +4,7 @@ from typing import List, Dict
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+import numpy as np
 
 # 環境変数を読み込む
 load_dotenv()
@@ -92,20 +93,25 @@ class MarkdownSearcher:
             
             # セマンティック検索の実行
             results = collection.query(
-                query_embeddings=[query_vector],
-                n_results=n_results * 2,  # より多くの候補を取得
-                include=['documents', 'embeddings']
+                query_embeddings=query_vector,
+                n_results=n_results*3,  # より多くの候補を取得
+                include=["documents", "distances"]
             )
+            # デバッグ用のprint文を追加
+            print("Documents length:", len(results['documents'][0]))
+            print("Distances length:", len(results['distances'][0]))
             
             if not results['documents'][0]:
                 print("検索結果が見つかりませんでした。")
                 return []
                 
             merged_results = []
-            for i, (doc, embedding) in enumerate(zip(results['documents'][0], results['embeddings'][0])):
+            # zipを使用して documents と distances を同時にイテレート
+            for i in range(len(results['documents'][0])):
+                doc = results['documents'][0][i]
+                distance = results['distances'][0][i]
                 # セマンティックスコアの計算
-                doc_vector = embedding
-                semantic_score = 1 - cosine(query_vector, doc_vector)
+                semantic_score = float(np.exp(-distance))
 
                 # キーワードスコアの計算
                 keyword_score = self.calculate_keyword_score(doc, query)
@@ -122,7 +128,7 @@ class MarkdownSearcher:
             
             # スコアでソート
             merged_results.sort(key=lambda x: x['score'], reverse=True)
-            return merged_results[:n_results]
+            return merged_results[:n_results] #n_resultsだけかえす
                 
         except Exception as e:
             print(f"検索エラー: {e}")
@@ -172,7 +178,7 @@ class MarkdownSearcher:
                 matches += 1
         
         # スコアの正規化（0〜1の範囲に）
-        score = matches / (len(keyword_list) )  # 1.5はボーナススコアを考慮
+        score = matches / (len(keyword_list) )  
         return min(1.0, score)  # 1.0を超えないように
 
 # 使用例
