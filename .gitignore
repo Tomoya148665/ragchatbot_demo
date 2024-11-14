@@ -8,7 +8,7 @@ ConvertedImages/
 
 #cache
 .mypy_cache/
-src/_pycache_/
+src/__pycache__/
 
 #Chromadb
 chroma_db/
