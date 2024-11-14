@@ -71,7 +71,7 @@ class MarkdownSearcher:
     
     
     
-    def search(self, collection_name: str, query: str, n_results: int = 3,
+    def search(self, collection_name: str, query: str, n_results: int = 5,
                alpha: float = 0.5) -> List[Dict]:
         """
         インデックス化されたMarkdownから検索を実行
@@ -196,9 +196,7 @@ if __name__ == "__main__":
     # 検索実行
     results = searcher.search(
         file_name, 
-        query,
-        n_results=3,
-        alpha=0.1  # セマンティック検索をより重視
+        query
     )
     
     if results:

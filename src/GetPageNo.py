@@ -1,4 +1,4 @@
-def GetPageNo(ansText: str) -> int:
+def GetPageNo(ansTexts: list[str]) -> list[int]:
     """
     テキストからページ番号を抽出
     
@@ -16,17 +16,17 @@ def GetPageNo(ansText: str) -> int:
         print(f"ファイルが見つかりません: {file_path}")
         return -1
     """
+    page_nos = []
+    for Text in ansTexts:
+        # "# Page "で始まる行を探す
+        lines = Text.split('\n')
+        for line in lines:
+            if line.startswith('# Page '):
+                try:
+                    # "# Page "の後の数字を抽出して整数に変換
+                    page_no = int(line.replace('# Page ', '').strip())
+                    page_nos.append(page_no)
+                except ValueError:
+                    continue
     
-    # "# Page "で始まる行を探す
-    lines = ansText.split('\n')
-    for line in lines:
-        if line.startswith('# Page '):
-            try:
-                # "# Page "の後の数字を抽出して整数に変換
-                page_no = int(line.replace('# Page ', '').strip())
-                print(f"ページ番号: {page_no}")
-                return page_no
-            except ValueError:
-                continue
-    
-    return page_no
+    return page_nos

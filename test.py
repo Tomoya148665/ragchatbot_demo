@@ -5,18 +5,23 @@ def test_search_and_page():
     searcher = MarkdownSearcher()
     
     # テストケース
-    pdf_name = "BSA071000 法定定期自主検査実施要領"
-    query = "性能検査を社内で行えない設備"
+    pdf_name = "BSA120200 動力プレス機械安全基準：通則"
+    query = "光線式安全装置の構造において故障したときどのようになっていないといけない？"
     
     # PDFファイル名に基づいて適切なMarkdownファイルを選択
     file_name = searcher.get_markdown_file_name(pdf_name)
     print(f"\n検索対象ファイル: {file_name}")
-    collection_name = 'pdf_plumber_combined_collection'
+    if pdf_name == "BSA120200 動力プレス機械安全基準：通則":
+        collection_name = "PressMachine_collection"
+    else:
+        collection_name = "pdf_plumber_combined_collection"
+
     
     # 検索実行
     results = searcher.search(
         collection_name, #ここでコレクションを直接指定
-        query
+        query,
+        n_results=5
     )
     
     # 検索結果の確認
