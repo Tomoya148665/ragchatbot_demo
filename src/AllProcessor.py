@@ -5,14 +5,14 @@ from src.ChromaSearcher import MarkdownSearcher
 import os
 import shutil
 
-def allProcessor(pdf_path: str, query: str):
+def allProcessor(pdf_path: str, query: str, ForUI:bool = False):
     """
     PDFドキュメントに対するクエリを処理する関数
     
     Args:
         pdf_path (str): PDFファイルのパス
         query (str): 検索クエリ
-        
+        ForUI (bool): UI表示フラグ
     Returns:
         str: RAG検索の結果
     """
@@ -47,12 +47,17 @@ def allProcessor(pdf_path: str, query: str):
         rag = Rag()
         response = rag.process(file_path, output_folder, pageNos, query)
 
-        result = {
+        ragResult = {
             "pageNos": pageNos,
             "response": response
         }
-        
-        return result
+        if ForUI:
+            return {
+                "ChromaResult": results,
+                "RAGResult": ragResult
+            }
+        else:
+            return ragResult
 
     except Exception as e:
         return f"エラーが発生しました: {str(e)}"
