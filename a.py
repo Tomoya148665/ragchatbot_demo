@@ -5,6 +5,7 @@ from src.RagClass import Rag
 from src.ChromaSearcher import MarkdownSearcher
 import os
 import shutil
+from src.AllProcessor import allProcessor
 
 def main():
     st.title("PDF検索アプリケーション")
@@ -28,56 +29,21 @@ def main():
         if query:
             with st.spinner("検索中..."):
                 try:
-                    # ConvertedImagesディレクトリのクリーンアップ
-                    output_folder = "./ConvertedImages"
-                    if os.path.exists(output_folder):
-                        shutil.rmtree(output_folder)
-                    os.makedirs(output_folder)
+                    allResult = allProcessor(pdf_path, query, ForUI=True)
 
-                    # PDFの名前を抽出
-                    pdf_name = selected_pdf
-
-                    # 検索の実行
-                    searcher = MarkdownSearcher()
-                    file_path = searcher.get_markdown_file_name(pdf_name)
-                    st.info(f"検索対象ファイル: {file_path}")
-
-                    # コレクション名を取得
-                    collection_name = searcher.get_collection_name(file_path)
-                    
-                    # 検索実行
-                    results = searcher.search(
-                        collection_name,
-                        query,
-                        n_results=3,
-                        alpha=0.1
-                    )
-
-                    if results:
+                    if allResult["ChromaResult"]:
                         # 検索結果の表示
                         st.subheader("検索結果")
-                        for i, result in enumerate(results, 1):
+                        for i, result in enumerate(allResult["ChromaResult"], 1):
                             with st.expander(f"結果 {i}"):
                                 st.write(result['content'])
                                 st.write(f"総合スコア: {result['score']:.3f}")
+                    else:
+                        st.warning("該当するページが見つかりませんでした。")
 
-                        # ページ番号の取得
-                        pageNo = GetPageNo(results[0]['content'])
-                        if pageNo != -1:
-                            st.info(f"該当ページ: {pageNo}")
-
-                            # PDFから画像を生成
-                            convert_pdf_to_jpg(pdf_path, output_folder)
-
-                            # RAG検索の実行
-                            rag = Rag()
-                            response = rag.process(file_path, output_folder, pageNo, query)
-
-                            # RAG検索結果の表示
-                            st.subheader("詳細な回答")
-                            st.write(response)
-                        else:
-                            st.warning("該当するページが見つかりませんでした。")
+                    if allResult["RAGResult"]:
+                        st.subheader("詳細な回答")
+                        st.write(allResult["RAGResult"]["response"])
 
                     else:
                         st.warning("検索結果が見つかりませんでした。")
