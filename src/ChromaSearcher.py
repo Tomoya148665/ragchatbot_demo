@@ -1,5 +1,4 @@
 from chromadb import PersistentClient
-from scipy.spatial.distance import cosine
 from typing import List, Dict
 from openai import OpenAI
 import os

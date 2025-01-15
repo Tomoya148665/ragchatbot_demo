@@ -2,7 +2,6 @@ import os
 import base64
 from dotenv import load_dotenv
 from openai import OpenAI
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 from typing import List
 
 # 環境変数を読み込む
